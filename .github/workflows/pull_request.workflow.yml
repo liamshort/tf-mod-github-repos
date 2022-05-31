@@ -1,0 +1,78 @@
+name: "PR Testing"
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  TF_IN_AUTOMATION: 1
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  pre-commit:
+    name: PR Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install TFenv
+        run: |
+          brew update
+          brew install tfenv
+          brew install terraform-docs
+          brew install pre-commit
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Execute Pre-Commit
+        id: precommit
+        run: |
+          pre-commit run -a --color=always --show-diff-on-failure 2>&1 | tee -ai precommit.log
+          result_code=${PIPESTATUS[0]}
+          echo "::set-output name=results::$(cat precommit.log)"
+          exit $result_code
+        continue-on-error: true
+
+      - name: Pre-Commit Comment
+        id: comment
+        uses: actions/github-script@v3
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Pre-Commit 📖\`${{ steps.precommit.outcome }}\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
