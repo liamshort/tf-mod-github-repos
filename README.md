@@ -13,7 +13,9 @@
 
 ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_github"></a> [github](#provider\_github) | 4.26.0 |
 
 ## Modules
 
@@ -21,15 +23,22 @@ No modules.
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [github_repository.this](https://registry.terraform.io/providers/hashicorp/github/latest/docs/resources/repository) | resource |
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_config_path"></a> [config\_path](#input\_config\_path) | Path to the config file | `string` | n/a | yes |
+| <a name="input_root_repo"></a> [root\_repo](#input\_root\_repo) | Name of root repository | `string` | n/a | yes |
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_github_repos"></a> [github\_repos](#output\_github\_repos) | Array containing full resource object |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 <!-- BEGIN_TF_DOCS -->
